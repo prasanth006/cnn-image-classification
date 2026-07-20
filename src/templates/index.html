@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIFAR-10 Image Classifier</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="card">
+        <header class="head">
+            <div class="logo">◆</div>
+            <h1>CIFAR-10 Image Classifier</h1>
+            <p class="tagline">A ResNet18 model trained with transfer learning · 10 object classes</p>
+            <div class="chips">
+                <span>airplane</span><span>automobile</span><span>bird</span><span>cat</span>
+                <span>deer</span><span>dog</span><span>frog</span><span>horse</span>
+                <span>ship</span><span>truck</span>
+            </div>
+            <div class="model-note">
+                <strong>Note:</strong> This model recognizes only these 10 object types.
+                It was not trained on people, text, or screenshots, so images outside these
+                classes may be misclassified — a known limitation of classifiers trained on a fixed class set.
+            </div>
+        </header>
+
+        <form action="/predict" method="post" enctype="multipart/form-data" id="uploadForm">
+            <label for="fileInput" class="dropzone" id="fileLabel">
+                <span class="dz-icon">↑</span>
+                <span class="dz-title" id="fileText">Drop an image or click to browse</span>
+                <span class="dz-sub">PNG, JPG · up to 5 MB</span>
+            </label>
+            <input type="file" id="fileInput" name="image" accept="image/*" required>
+            <img id="preview" class="hidden" alt="preview">
+            <button type="submit" class="btn">Classify Image</button>
+        </form>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        {% if prediction %}
+            <section class="result">
+                {% if is_confident %}
+                    <div class="badge confident">
+                        <span class="badge-tag">Prediction</span>
+                        <span class="badge-class">{{ prediction }}</span>
+                        <div class="conf-ring" style="--pct: {{ confidence }};">
+                            <span>{{ confidence }}%</span>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="badge uncertain">
+                        <span class="badge-tag">Not confident enough</span>
+                        <span class="badge-class">Unknown object</span>
+                        <span class="badge-hint">Top guess "{{ prediction }}" at only {{ confidence }}% — likely outside the 10 classes</span>
+                    </div>
+                {% endif %}
+
+                <h3 class="bars-title">All class probabilities</h3>
+                <ul class="bars">
+                    {% for item in all_probs %}
+                        <li>
+                            <span class="bar-name">{{ item.class }}</span>
+                            <span class="bar-track">
+                                <span class="bar-fill" style="--w: {{ item.prob }}%;"></span>
+                            </span>
+                            <span class="bar-val">{{ item.prob }}%</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        <footer class="foot">Built with PyTorch &amp; Flask · ResNet18 Transfer Learning</footer>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const fileText = document.getElementById('fileText');
+        const dropzone = document.getElementById('fileLabel');
+
+        function showFile(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+            fileText.textContent = file.name;
+        }
+
+        fileInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) showFile(this.files[0]);
+        });
+
+        // Drag-and-drop support
+        ['dragover', 'dragleave', 'drop'].forEach(evt => {
+            dropzone.addEventListener(evt, e => {
+                e.preventDefault();
+                dropzone.classList.toggle('drag', evt === 'dragover');
+            });
+        });
+        dropzone.addEventListener('drop', e => {
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                fileInput.files = e.dataTransfer.files;
+                showFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        // Animate bars + confidence ring on load
+        window.addEventListener('load', () => {
+            document.querySelectorAll('.bar-fill').forEach(bar => {
+                const w = bar.style.getPropertyValue('--w');
+                bar.style.width = '0%';
+                setTimeout(() => { bar.style.width = w; }, 150);
+            });
+        });
+    </script>
+</body>
+</html>

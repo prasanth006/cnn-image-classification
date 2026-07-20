@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: cifar10-image-classifier
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --chdir src app:app --bind 0.0.0.0:$PORT
