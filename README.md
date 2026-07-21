@@ -2,8 +2,7 @@
 
 An end-to-end **machine learning** project that classifies images into 10 object categories using a Convolutional Neural Network built from scratch, then improved with transfer learning. Includes a live web app where you can upload an image and get a prediction with confidence scores.
 
-**🔗 Live Demo:** _Coming soon — deploying on Render_ &nbsp;`(update this link after deployment)`
-
+**🔗 Live Demo:** [cifar10-image-classifier-hpgq.onrender.com](https://cifar10-image-classifier-hpgq.onrender.com)
 ---
 
 ## Headline Result
