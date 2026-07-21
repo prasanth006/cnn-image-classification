@@ -7,7 +7,7 @@ from PIL import Image
 import json
 import os
 
-# Figure out the folder this file lives in, so paths work anywhere
+# Figure out the folder that file lives in, so paths work anywhere
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Load the model info (class names, image size, normalization stats)
@@ -24,8 +24,11 @@ def load_model():
     weights_path = os.path.join(BASE_DIR, "cifar10_resnet18_final.pth")
     model.load_state_dict(torch.load(weights_path, map_location=DEVICE))
     model.eval()
+    # Free memory: we never train on the server, so disable gradient tracking globally
+    for param in model.parameters():
+        param.requires_grad = False
     return model
-
+    
 # Load the model a single time when this module is imported
 MODEL = load_model()
 
